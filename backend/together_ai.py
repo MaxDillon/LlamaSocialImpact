@@ -1,41 +1,51 @@
 import os
 from together import Together
 from pydantic import BaseModel, Field
+from enum import StrEnum
+import json
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
+class Status(StrEnum):
+    pending = "pending"
+    success =  "success"
+    fail = "fail"
 
-class TestClass(BaseModel):
-    title: str = Field(description="A title for the voice note")
-    summary: str = Field(description="A short one sentence summary of the voice note.")
-    actionItems: list[str] = Field(
-        description="A list of action items from the voice note"
+class BuildingBlock(BaseModel):
+    name: str
+    description: str    
+
+
+class CheckIn(BaseModel):
+    blocks: list[BuildingBlock] = Field(
+        description="an actionable task the client should take by this check-in time"
     )
 
-    pass
-
+class Result(BaseModel):
+    check_ins: list[CheckIn] = Field(description="check-ins")
 
 client = Together(api_key=os.environ.get("TOGETHER_AI_KEY"))
-transcript = (
-    "Good morning! It's 7:00 AM, and I'm just waking up. Today is going to be a busy day, "
-    "so let's get started. First, I need to make a quick breakfast. I think I'll have some "
-    "scrambled eggs and toast with a cup of coffee. While I'm cooking, I'll also check my "
-    "emails to see if there's anything urgent."
-)
+
+f = open("/Users/maxdillon/Projects/hackathons/llama_impact/LlamaSocialImpact/example_documents.txt")
 response = client.chat.completions.create(
     model="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
     messages=[
         {
             "role": "system",
-            "content": "The following is a voice message transcript. Only answer in JSON.",
+            "content": "The following is a set of instructions for patient care. Give me a list of all actionable tasks split into checkins. Give me it in json form.",
         },
         {
             "role": "user",
-            "content": transcript,
+            "content": f.read(),
         },
     ],
-    response_format={"type": "json_object", "schema": TestClass.model_json_schema()},
+    response_format={"type": "json_object", "schema": Result.model_json_schema()},
 )
-print(response.choices[0].message.content)
+res = json.loads(response.choices[0].message.content)
+
+print(json.dumps(res, indent=4))
+
+for choice in response.choices:
+    print(choice.message.content)
