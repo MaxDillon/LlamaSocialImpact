@@ -28,7 +28,7 @@ class Result(BaseModel):
 
 client = Together(api_key=os.environ.get("TOGETHER_AI_KEY"))
 
-f = open("/Users/maxdillon/Projects/hackathons/llama_impact/LlamaSocialImpact/example_documents.txt")
+f = open("../example_documents.txt")
 response = client.chat.completions.create(
     model="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
     messages=[
