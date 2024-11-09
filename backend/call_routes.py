@@ -48,7 +48,7 @@ def upload_file():
         # Example: Read first page text
         first_page = pdf_reader.pages[0]
         text = first_page.extract_text()
-        
+        print(text)
         return {
             "success": True,
             "data": {
