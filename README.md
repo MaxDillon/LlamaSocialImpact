@@ -3,5 +3,5 @@ We help government organizations provide personalized outreach to their users wi
 
 
 ## Tools
-- MindsDB (Retrevial Augment Generate)
+- MindsDB (Retrieval Augment Generate)
 - NextJS dashboard/ui
