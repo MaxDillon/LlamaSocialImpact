@@ -9,7 +9,8 @@ from drf_spectacular.views import (
 )
 
 
-router = DefaultRouter()
+router = DefaultRouter(trailing_slash=False)  # Add this parameter
+
 router.register(r"patients", PatientViewSet, basename="patient")
 router.register(r"checkups", CheckupViewSet, basename="checkup")
 router.register(r"modules", ModuleViewSet, basename="module")

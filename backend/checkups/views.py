@@ -21,6 +21,35 @@ class PatientViewSet(viewsets.ViewSet):
 
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
+    def list(self, request):
+        """
+        Get all patients
+        ---
+        responses:
+          200:
+            description: List of all patients
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  phone:
+                    type: string
+                  plan_text:
+                    type: string
+        """
+        patients = Patient.objects.all()
+        return Response([{
+            'id': patient.id,
+            'name': patient.name,
+            'phone': patient.phone,
+            'plan_text': patient.plan_text[:200] + "..." if patient.plan_text else None
+        } for patient in patients])
+
     def create(self, request):
         """
         Create a new patient
