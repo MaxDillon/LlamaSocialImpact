@@ -16,12 +16,13 @@ def trigger_call(patient, checkup: Checkup):
             print(module.module_type)
             
         # Load and render call plan template
-        env = Environment(loader=FileSystemLoader('templates'))
+        env = Environment(loader=FileSystemLoader('checkups/templates'))
         template = env.get_template('call_plan.njk')
         call_plan = template.render(checkup=checkup)
     except Exception as e:
         print(f"Error rendering call plan: {e}")
         raise
+    print(os.getenv("VAPI_ASSISTANT_ID"))
     # Create the call
     try:
         call = vapi.calls.create(
@@ -32,7 +33,6 @@ def trigger_call(patient, checkup: Checkup):
                 number=patient.phone,
             ),
             assistant_overrides=AssistantOverrides(
-                system_prompt=prompt,
                 variable_values={
                     "patient_name": patient.name,
                     "days_since_start": (checkup.scheduled_for - patient.created_at).days,

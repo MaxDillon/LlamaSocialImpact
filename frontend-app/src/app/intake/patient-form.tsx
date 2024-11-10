@@ -278,7 +278,7 @@ export default function ClientInfoPage() {
           </CardContent>
         </Card>
         <div className="flex justify-center">
-          {isPending && <p>Creating patient...</p>}
+          {isPending && <div><p>Creating patient...</p></div>}
           
           <Button type="submit" size="lg">
             Submit Client Information
