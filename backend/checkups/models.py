@@ -45,6 +45,6 @@ class CheckupModule(models.Model):
     rationale = models.TextField()
     sequence_order = models.IntegerField()
     inputs = JSONField(default=dict)
-    outputs = JSONField(default=dict, null=True)
+    outputs = JSONField(default=dict, null=True, blank=True)
     status = models.TextField(default="pending")
     transcript = models.TextField(null=True)

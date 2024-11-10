@@ -11,7 +11,7 @@ class ModulePreviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CheckupModule
-        fields = ['id', 'module_type', 'status', 'preview']
+        fields = ['id', 'module_type', 'status', 'preview', 'inputs', 'outputs']
 
     def get_preview(self, obj):
         return f"{obj.module_type} preview"
