@@ -19,11 +19,24 @@ interface CalendarViewProps {
   month: string
   days: CalendarDay[]
   events: Event[]
+  onUpdateStatus?: (eventIndex: number, newStatus: Event['status']) => void
 }
 
-export function CalendarView({ month, days, events }: CalendarViewProps) {
+export function CalendarView({ month, days, events, onUpdateStatus }: CalendarViewProps) {
   const weekDays = ['Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   
+  const statusOptions = ['completed', 'not taken', 'missed', 'cancelled'] as const
+
+  const getStatusColor = (status?: Event['status']) => {
+    switch (status) {
+      case 'completed': return 'text-green-400'
+      case 'not taken': return 'text-red-400'
+      case 'missed': return 'text-red-500'
+      case 'cancelled': return 'text-gray-400'
+      default: return 'text-yellow-400'
+    }
+  }
+
   return (
     <div className="w-full space-y-6">
       {/* Calendar Section */}
@@ -54,7 +67,7 @@ export function CalendarView({ month, days, events }: CalendarViewProps) {
         </div>
       </div>
 
-      {/* Upcoming Events Section */}
+      {/* Updated Events Section */}
       <div className="space-y-4">
         <h3 className="text-xl font-semibold text-white">Upcoming</h3>
         <div className="space-y-3">
@@ -65,7 +78,12 @@ export function CalendarView({ month, days, events }: CalendarViewProps) {
                   {event.type === 'appointment' ? '🔔' : '💊'}
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-white font-medium">{event.title}</h4>
+                  <div className="flex items-start justify-between">
+                    <h4 className="text-white font-medium">{event.title}</h4>
+                    <span className={`text-sm ${getStatusColor(event.status)}`}>
+                      {event.status || 'pending'}
+                    </span>
+                  </div>
                   {event.location && (
                     <div className="flex items-center text-gray-400 text-sm mt-1">
                       <MapPin className="w-4 h-4 mr-1" />
@@ -74,16 +92,18 @@ export function CalendarView({ month, days, events }: CalendarViewProps) {
                   )}
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-gray-400 text-sm">{event.time}</span>
-                    {event.status && (
-                      <span className={`text-sm ${
-                        event.status === 'not taken' ? 'text-orange-400' : 
-                        event.status === 'completed' ? 'text-green-400' : 
-                        event.status === 'missed' ? 'text-red-400' :
-                        event.status === 'cancelled' ? 'text-orange-400' :
-                        'text-gray-400'
-                      }`}>
-                        {event.status}
-                      </span>
+                    {event.status && onUpdateStatus && (
+                      <select
+                        value={event.status}
+                        onChange={(e) => onUpdateStatus(index, e.target.value as Event['status'])}
+                        className="bg-gray-700 text-sm rounded px-2 py-1 border border-gray-600"
+                      >
+                        {statusOptions.map(status => (
+                          <option key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </option>
+                        ))}
+                      </select>
                     )}
                   </div>
                 </div>

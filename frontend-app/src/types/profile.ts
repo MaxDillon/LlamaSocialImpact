@@ -3,6 +3,7 @@ import { CalendarData } from './calendar';
 export const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
 export type BloodType = typeof BLOOD_TYPES[number];
 export type MeasurementUnit = 'metric' | 'imperial';
+export type RiskLevel = 'high' | 'medium' | 'low';
 
 export interface ProfileData {
   name: string;
@@ -14,4 +15,5 @@ export interface ProfileData {
   avatarUrl?: string;
   measurementUnit?: MeasurementUnit;
   calendarData: CalendarData;
+  riskLevel: RiskLevel;
 }
