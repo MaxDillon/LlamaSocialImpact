@@ -23,6 +23,7 @@ def trigger_call(patient, checkup: Checkup):
         print(f"Error rendering call plan: {e}")
         raise
     print(os.getenv("VAPI_ASSISTANT_ID"))
+    print(call_plan)
     # Create the call
     try:
         call = vapi.calls.create(
