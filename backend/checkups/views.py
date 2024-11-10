@@ -129,11 +129,13 @@ class PatientViewSet(viewsets.ViewSet):
                 sequence_number=0,
             )
             for module in checkin.modules:
+                print("module")
+                print(dict(module.moduleConfig))
                 CheckupModule.objects.create(
                     checkup=dbCheckin,
                     module_type=module.moduleType,
                     sequence_order=0,
-                    rationale=module.purpose,
+                    inputs=dict(module.moduleConfig),
                 )
 
         providers_data = request.data.get("providers", [])
