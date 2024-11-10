@@ -37,7 +37,7 @@ import { useCreatePatient } from "@/data/use-create-patient";
 export interface Provider {
   name: string;
   role: string;
-  phoneNumber: string;
+  phone: string;
 }
 
 export default function ClientInfoPage() {
@@ -45,11 +45,11 @@ export default function ClientInfoPage() {
   const [clientPhoneNumber, setClientPhoneNumber] = useState("");
   const [treatmentPlan, setTreatmentPlan] = useState<File | null>(null);
   const [providers, setProviders] = useState<Provider[]>([
-    { name: "", role: "", phoneNumber: "" },
+    { name: "", role: "", phone: "" },
   ]);
 
   const handleAddProvider = () => {
-    setProviders([...providers, { name: "", role: "", phoneNumber: "" }]);
+    setProviders([...providers, { name: "", role: "", phone: "" }]);
   };
 
   const handleRemoveProvider = (index: number) => {
@@ -245,11 +245,11 @@ export default function ClientInfoPage() {
                             {...useMask("+1 (...) ... ....")}
                             id={`providerPhoneNumber${index}`}
                             type="tel"
-                            value={provider.phoneNumber}
+                            value={provider.phone}
                             onChange={(e) =>
                               handleProviderChange(
                                 index,
-                                "phoneNumber",
+                                "phone",
                                 e.target.value
                               )
                             }
@@ -278,6 +278,8 @@ export default function ClientInfoPage() {
           </CardContent>
         </Card>
         <div className="flex justify-center">
+          {isPending && <p>Creating patient...</p>}
+          
           <Button type="submit" size="lg">
             Submit Client Information
           </Button>

@@ -57,6 +57,7 @@ class PlanProcessingOutreachCheckConfig(BaseModel):
     serviceName: str
     purpose: str
     contact: str
+    phone: str | None = None
     requirements: List[str] = []
 
 
