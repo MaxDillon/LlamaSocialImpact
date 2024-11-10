@@ -2,7 +2,7 @@
 Your task is to conduct a check-in call with {{ checkup.patient.name }}. 
 This check-in has the following goals: {{ checkup.goals }}
 
-During this call, you need to cover the following modules in order:
+During this call, you need to cover the following talking points:
 
 {% for module in checkup.modules.all() %}
 ## {{ module.module_type|title|replace('_', ' ') }}
@@ -16,13 +16,7 @@ You need to verify the patient's check-in compliance:
 - Note any scheduling conflicts or barriers to attendance
 
 {% elif module.module_type == 'outreach_check' %}
-You need to verify contact with {{ module.inputs.serviceName }}:
-- Purpose of contact: {{ module.inputs.purpose }}
-{% if module.inputs.phone %}
-- Verify if they called {{ module.inputs.phone }}
-{% endif %}
-- Check if they spoke with {{ module.inputs.contact }}
-
+You need to verify contact with {{ module.inputs.serviceName }}.
 
 {% elif module.module_type == 'documentation_status' %}
 Check documentation status for {{ module.inputs.category }}:
@@ -78,3 +72,4 @@ Remember to:
 - Document all responses accurately
 - Flag any immediate concerns for provider review
 {#tone#}
+
