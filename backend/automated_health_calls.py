@@ -15,17 +15,21 @@ health_routes = Blueprint("health_routes", __name__)
 together_client = Together(api_key=os.environ.get("TOGETHER_AI_KEY"))
 vapi_client = Vapi(token=os.environ["VAPI_API_KEY"])
 
+
 class BuildingBlock(BaseModel):
     name: str
-    description: str    
+    description: str
+
 
 class CheckIn(BaseModel):
     blocks: list[BuildingBlock] = Field(
         description="an actionable task the client should take by this check-in time"
     )
 
+
 class Result(BaseModel):
     check_ins: list[CheckIn] = Field(description="check-ins")
+
 
 @health_routes.post("/initiate-health-call")
 def initiate_health_call():
@@ -48,14 +52,14 @@ def initiate_health_call():
         ],
         response_format={"type": "json_object", "schema": Result.model_json_schema()},
     )
-    
+
     checkins = json.loads(response.choices[0].message.content)
-    
+
     # Format check-ins for the call script
     formatted_checkins = ""
-    for i, checkin in enumerate(checkins['check_ins'], 1):
+    for i, checkin in enumerate(checkins["check_ins"], 1):
         formatted_checkins += f"\nCheck-in {i}:\n"
-        for block in checkin['blocks']:
+        for block in checkin["blocks"]:
             formatted_checkins += f"- {block['name']}: {block['description']}\n"
 
     # Generate call script
@@ -70,21 +74,21 @@ def initiate_health_call():
                 "role": "user",
                 "content": f"Create a phone call script to discuss these check-ins with the patient: {formatted_checkins}",
             },
-        ]
+        ],
     )
-    
+
     call_script = script_response.choices[0].message.content
 
     # Initiate call with VAPI
     call_response = vapi_client.calls.create(
         assistant_id=os.environ["VAPI_ASSISTANT_ID"],
         phone_number_id=os.environ["VAPI_PHONE_NUMBER_ID"],
-        customer={"number": "+1(650)305-1830"}, 
+        customer={"number": "+1(650)305-1830"},
     )
 
     return {
         "status": "success",
         "call_details": call_response.json(),
         "script": call_script,
-        "checkins": checkins
-    } 
+        "checkins": checkins,
+    }

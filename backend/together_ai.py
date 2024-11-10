@@ -8,14 +8,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Status(StrEnum):
     pending = "pending"
-    success =  "success"
+    success = "success"
     fail = "fail"
+
 
 class BuildingBlock(BaseModel):
     name: str
-    description: str    
+    description: str
 
 
 class CheckIn(BaseModel):
@@ -23,8 +25,10 @@ class CheckIn(BaseModel):
         description="an actionable task the client should take by this check-in time"
     )
 
+
 class Result(BaseModel):
     check_ins: list[CheckIn] = Field(description="check-ins")
+
 
 client = Together(api_key=os.environ.get("TOGETHER_AI_KEY"))
 
