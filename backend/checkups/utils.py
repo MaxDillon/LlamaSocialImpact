@@ -36,7 +36,7 @@ def extract_information_from_document(document: str):
     togetherai = Together(api_key=os.environ.get("TOGETHER_AI_KEY"))
     client = openai.OpenAI(
         base_url="https://api.fireworks.ai/inference/v1",
-        api_key=os.environ["FIREWORKS_API_KEY"],
+        api_key=os.environ["FIREWORKS_AI_KEY"],
     )
     response = client.chat.completions.create(
         model="accounts/fireworks/models/llama-v3p1-8b-instruct",
