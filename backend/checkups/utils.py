@@ -28,7 +28,14 @@ def extract_text_from_pdf(pdf_file):
 
 
 JSON_SCHEMA = plan_process_types.PlanProcessingPlan.model_json_schema()
-PARSE_PROMPT = f"The following is a set of instructions for patient care. Give me a list of all actionable tasks split into checkins. Give me it in json form. Here is the jaon schema: {JSON_SCHEMA}"
+PARSE_PROMPT = f"""
+The following is a set of instructions on the steps needed to be taken for patients/clients to complete their requirements.
+You will parse these instructions into this schema:
+{JSON_SCHEMA}
+
+Make sure to include as much information and context in the schema as possible. and be as specific as possible.
+Fields labeled rationale should be there to explain why this information was inserted and what it represents.
+"""
 load_dotenv()
 
 
