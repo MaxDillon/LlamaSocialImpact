@@ -12,6 +12,7 @@ class Provider(models.Model):
 class Patient(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.TextField()
+    phone = models.TextField()
     plan_text = models.TextField(null=True, blank=True)  # new field
     providers = models.ManyToManyField(Provider, through='PatientProvider')
     created_at = models.DateTimeField(auto_now_add=True)

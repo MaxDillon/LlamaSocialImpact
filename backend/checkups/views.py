@@ -1,9 +1,7 @@
+import asyncio
 from django.shortcuts import render
-
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView
+from .services import trigger_call
 from .models import Patient, Checkup, CheckupModule, PatientProvider, Provider
 from .serializers import CheckupListSerializer, ModuleDetailSerializer
 
@@ -151,6 +149,49 @@ class CheckupViewSet(viewsets.ViewSet):
         checkup.save()
         return Response(status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'])
+    def trigger_call(self, request, pk=None):
+        """Trigger a VAPI call for this checkup"""
+        checkup = get_object_or_404(Checkup, pk=pk)
+        
+        try:
+            # Run async call in sync context
+            call = trigger_call(checkup.patient, checkup)
+            print(call)
+            return Response({
+                'call_id': call.id,
+                'status': call.status
+            })
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def list(self, request):
+        """List all upcoming checkups"""
+        checkups = Checkup.objects.filter(
+            completed=False
+        ).select_related(
+            'patient'
+        ).prefetch_related(
+            'modules'
+        ).order_by('scheduled_for')
+
+        data = []
+        for checkup in checkups:
+            data.append({
+                'id': checkup.id,
+                'patient_name': checkup.patient.name,
+                'patient_phone': checkup.patient.phone,
+                'scheduled_for': checkup.scheduled_for,
+                'description': checkup.description,
+                'goals': checkup.goals,
+                'module_count': checkup.modules.count(),
+                'status': 'pending'  # You might want to add a status field to track call status
+            })
+
+        return Response(data)
 class ModuleViewSet(viewsets.ViewSet):
     """
     API endpoints for managing checkup modules
@@ -211,3 +252,15 @@ class ModuleViewSet(viewsets.ViewSet):
                 setattr(module, field, request.data[field])
         module.save()
         return Response(status=status.HTTP_200_OK)
+    
+
+class CheckupListView(TemplateView):
+    template_name = 'checkups/list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Reuse the API endpoint to get data
+        viewset = CheckupViewSet()
+        response = viewset.list(self.request)
+        context['checkups'] = response.data
+        return context
