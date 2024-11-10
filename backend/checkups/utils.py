@@ -48,6 +48,8 @@ def extract_information_from_document(document: str):
         response_format={"type": "json_object", "schema": JSON_SCHEMA},
     )
 
+    print(response.choices[0].message.content)
+
     return plan_process_types.PlanProcessingPlan.model_validate_json(
         response.choices[0].message.content
     )
