@@ -13,14 +13,16 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Patient, Checkup, CheckupModule, PatientProvider, Provider
 from .serializers import CheckupListSerializer, ModuleDetailSerializer
-from .utils import extract_text_from_pdf
+from .utils import extract_text_from_pdf, extract_information_from_document
+
 
 class PatientViewSet(viewsets.ViewSet):
     """
     API endpoints for managing patients
     """
+
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
-    
+
     def create(self, request):
         """
         Create a new patient
@@ -59,41 +61,57 @@ class PatientViewSet(viewsets.ViewSet):
           400:
             description: Invalid input
         """
-        pdf_file = request.FILES.get('plan_pdf')
+        pdf_file = request.FILES.get("plan_pdf")
         if not pdf_file:
             return Response(
-                {'error': 'PDF file is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "PDF file is required"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         plan_text = extract_text_from_pdf(pdf_file)
+
         if plan_text is None:
             return Response(
-                {'error': 'Could not process PDF file'}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Could not process PDF file"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            
-        patient = Patient.objects.create(
-            name=request.data['name'],
-            plan_text=plan_text
-        )
-        
-        providers_data = request.data.get('providers', [])
+        plan_outline = extract_information_from_document(plan_text)
+        print(plan_outline)
+        # TODO: handle errors from pydantic extract
+
+        patient = Patient.objects.create(name=request.data["name"], plan_text=plan_text)
+
+        checkins = plan_outline.checkIns
+        for checkin in checkins:
+            dbCheckin = Checkup.objects.create(
+                patient=patient,
+                description=checkin.description,
+                scheduled_for=checkin.day,
+                goals=checkin.rationale,
+            )
+            for module in checkin.modules:
+                CheckupModule.objects.create(
+                    checkup=dbCheckin, module_type=module.moduleType
+                )
+
+        providers_data = request.data.get("providers", [])
         if isinstance(providers_data, str):
             import json
+
             providers_data = json.loads(providers_data)
-            
+
         for provider_data in providers_data:
             provider = Provider.objects.create(**provider_data)
             PatientProvider.objects.create(patient=patient, provider=provider)
-            
-        return Response({
-            'id': patient.id,
-            'plan_text': plan_text[:200] + '...'  # Preview of extracted text
-        }, status=status.HTTP_201_CREATED)
 
+        return Response(
+            {
+                "id": patient.id,
+                "plan_text": plan_text[:200] + "...",  # Preview of extracted text
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def checkups(self, request, pk=None):
         """
         Get all checkups for a specific patient
@@ -115,15 +133,17 @@ class PatientViewSet(viewsets.ViewSet):
             description: Patient not found
         """
         patient = get_object_or_404(Patient, pk=pk)
-        checkups = Checkup.objects.filter(patient=patient).prefetch_related('modules')
+        checkups = Checkup.objects.filter(patient=patient).prefetch_related("modules")
         serializer = CheckupListSerializer(checkups, many=True)
         return Response(serializer.data)
+
 
 class CheckupViewSet(viewsets.ViewSet):
     """
     API endpoints for managing checkups
     """
-    @action(detail=True, methods=['post'])
+
+    @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):
         """
         Mark a checkup as completed
@@ -147,14 +167,16 @@ class CheckupViewSet(viewsets.ViewSet):
         """
         checkup = get_object_or_404(Checkup, pk=pk)
         checkup.completed = True
-        checkup.completed_at = request.data['completed_at']
+        checkup.completed_at = request.data["completed_at"]
         checkup.save()
         return Response(status=status.HTTP_200_OK)
+
 
 class ModuleViewSet(viewsets.ViewSet):
     """
     API endpoints for managing checkup modules
     """
+
     def retrieve(self, request, pk=None):
         """
         Get details of a specific module
@@ -206,7 +228,7 @@ class ModuleViewSet(viewsets.ViewSet):
             description: Module not found
         """
         module = get_object_or_404(CheckupModule, pk=pk)
-        for field in ['outputs', 'status', 'transcript']:
+        for field in ["outputs", "status", "transcript"]:
             if field in request.data:
                 setattr(module, field, request.data[field])
         module.save()

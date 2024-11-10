@@ -103,7 +103,7 @@ class PlanProcessingNeedsModule(BaseModel):
 
 # Main models
 class PlanProcessingCheckIn(BaseModel):
-    day: int = Field(ge=1, le=7)
+    day_of_week: int = Field(ge=1, le=7)
     description: str
     rationale: str | None = None
     modules: List[
