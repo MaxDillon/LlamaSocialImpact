@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import PatientCheckups from "./patient-checkups";
 import ModulePopup from "../../module-popup";
 import { useState } from "react";
+import { useUpdateModule } from "@/data/use-update-module";
 
 export default function PatientPage() {
   const { patientId } = useParams();
@@ -20,13 +21,12 @@ export default function PatientPage() {
   const handleClosePopup = () => {
     setSelectedModule(null);
   };
+  const { mutate: updateModule, isPending } = useUpdateModule();
 
-  const handleSaveModule = (moduleId: string, updatedInputs: Record<string, any>) => {
+  const handleSaveModule = (module: Module) => {
     // Handle saving the updated module inputs
-    console.log("Saving module", moduleId, updatedInputs);
-    // You would typically make an API call here to update the module
-    // Then close the popup or update the local state
-    handleClosePopup();
+    console.log("Saving module", module);
+    updateModule(module);
   };
 
   return (
@@ -38,6 +38,7 @@ export default function PatientPage() {
           onClose={handleClosePopup}
           module={selectedModule}
           onSave={handleSaveModule}
+          isSaving={isPending}
         />
       )}
     </>

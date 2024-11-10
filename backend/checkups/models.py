@@ -47,4 +47,4 @@ class CheckupModule(models.Model):
     inputs = JSONField(default=dict)
     outputs = JSONField(default=dict, null=True, blank=True)
     status = models.TextField(default="pending")
-    transcript = models.TextField(null=True)
+    transcript = models.TextField(null=True, blank=True)

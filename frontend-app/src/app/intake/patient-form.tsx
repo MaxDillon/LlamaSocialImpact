@@ -33,7 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-interface Provider {
+import { useCreatePatient } from "@/data/use-create-patient";
+export interface Provider {
   name: string;
   role: string;
   phoneNumber: string;
@@ -65,10 +66,14 @@ export default function ClientInfoPage() {
     newProviders[index][field] = value;
     setProviders(newProviders);
   };
-
+  const { mutate: createPatient, isPending, error } = useCreatePatient();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
+    if (!treatmentPlan) {
+      alert("Please upload a treatment plan");
+      return;
+    }
+    createPatient({ clientName, clientPhoneNumber, treatmentPlan, providers });
     console.log({ clientName, clientPhoneNumber, treatmentPlan, providers });
   };
 
@@ -78,7 +83,7 @@ export default function ClientInfoPage() {
         Intake A New Client
       </h1>
       <h4 className="text-xl text-center mb-8">
-        You'll be able to add the client's treatment plan and providers here.
+        You'll be able to add the client's exit plan and providers here.
       </h4>
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

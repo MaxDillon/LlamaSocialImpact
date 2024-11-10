@@ -114,7 +114,7 @@ class PatientViewSet(viewsets.ViewSet):
         print(plan_outline)
         # TODO: handle errors from pydantic extract
 
-        patient = Patient.objects.create(name=request.data["name"], plan_text=plan_text)
+        patient = Patient.objects.create(name=request.data["name"], plan_text=plan_text, phone=request.data["phone"])
 
         checkins = plan_outline.checkIns
         for checkin in checkins:
@@ -314,11 +314,20 @@ class ModuleViewSet(viewsets.ViewSet):
             description: Module not found
         """
         module = get_object_or_404(CheckupModule, pk=pk)
-        for field in ["outputs", "status", "transcript"]:
-            if field in request.data:
-                setattr(module, field, request.data[field])
-        module.save()
-        return Response(status=status.HTTP_200_OK)
+        print(f"Updating module {pk} with data:", request.data)  # Debug print
+        
+        serializer = ModuleDetailSerializer(
+            module,
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            print("Updated module:", serializer.data)  # Debug print
+            return Response(serializer.data)
+        else:
+            print("Validation errors:", serializer.errors)  # Debug print
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CheckupListView(TemplateView):

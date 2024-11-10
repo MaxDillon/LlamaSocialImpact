@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Save } from "lucide-react";
+import { X, Save, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,21 +10,45 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { Module } from "@/data/use-patient-checkups";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 export interface ModuleType {
   title: string;
   description: string;
+  inputs: Record<string, string>;
 }
 
 export const moduleTypes: Record<string, ModuleType> = {
   outreach_check: {
-    title: "Outreach Check",
+    title: "Confirm Outreach",
     description:
-      "You can use this module to check if the patient was able to make contact with another person or organization",
+      "Alice will confirm if contact was made with another person or organization.",
+    inputs: {
+      phone_number: "Phone Number to Call",
+    },
   },
   drug_survey: {
     title: "Drug Usage Survey",
     description: "Assess recent drug use patterns and risk levels",
+    inputs: {
+        maxAlertScore: "Maximum Score That Will Trigger a Call",
+    },
+  },
+  phq_assessment: {
+    title: "PHQ-2 Assessment",
+    description:
+      "Alice will evaluate the patient's current level of depression using PHQ-2 Guidelines",
+    inputs: {
+      maxAlertScore: "Maximum Safe Score",
+    },
+  },
+  ipv_assessment: {
+    title: "IPV Assessment",
+    description: "Alice will evaluate signs of domestic violence using IPV/HITS Guidelines",
+    inputs: {
+        maxAlertScore: "Maximum Safe Score",
+    },
   },
   // Add more module types as needed
 };
@@ -32,19 +56,9 @@ export const moduleTypes: Record<string, ModuleType> = {
 interface ModulePopupProps {
   isOpen: boolean;
   onClose: () => void;
-  module: {
-    id: string;
-    module_type: string;
-    inputs: Record<string, any>;
-    outputs: Record<string, any>;
-    rationale: string;
-    transcript: string;
-  };
-  onSave: (
-    moduleId: string,
-    updatedInputs: Record<string, any>,
-    updatedRationale: string
-  ) => void;
+  module: Module;
+  onSave: (module: Module) => void;
+  isSaving: boolean;
 }
 
 export default function ModulePopup({
@@ -52,9 +66,10 @@ export default function ModulePopup({
   onClose,
   module,
   onSave,
+  isSaving,
 }: ModulePopupProps) {
   const [inputs, setInputs] = useState<Record<string, any>>({});
-  const [rationale, setRationale] = useState("");
+  const [rationale, setRationale] = useState(module.rationale);
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -74,7 +89,11 @@ export default function ModulePopup({
   };
 
   const handleSave = () => {
-    onSave(module.id, inputs, rationale);
+    onSave({
+      ...module,
+      inputs,
+      rationale,
+    });
     setIsDirty(false);
   };
 
@@ -86,29 +105,29 @@ export default function ModulePopup({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl p-0">
-        <div className="sticky top-0 z-50 flex items-center justify-between border-b bg-background px-6 py-4">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-semibold text-primary">
-              {moduleTypeInfo.title}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              What does this module do?
-            </p>
-            <p className="text-md">
-              {moduleTypeInfo.description}
-            </p>
+        <DialogTitle>
+          <div className="sticky top-0 z-50 flex items-center justify-between border-b bg-background px-6 py-4">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-semibold text-primary">
+                {moduleTypeInfo.title}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                What does this module do?
+              </p>
+              <p className="text-md">{moduleTypeInfo.description}</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </Button>
-        </div>
+        </DialogTitle>
         <ScrollArea className="max-h-[calc(100vh-8rem)]">
           <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
             <div className="space-y-6 md:col-span-2">
               <div className="rounded-lg border bg-card p-4">
                 <Label htmlFor="rationale" className="text-base font-semibold">
-                  Rationale
+                  Details for outreach
                 </Label>
                 <Textarea
                   id="rationale"
@@ -130,7 +149,7 @@ export default function ModulePopup({
                   {Object.entries(inputs).map(([key, value]) => (
                     <div key={key}>
                       <Label htmlFor={key} className="text-sm font-medium">
-                        {key
+                        {moduleTypeInfo.inputs[key] || key
                           .split("_")
                           .map(
                             (word) =>
@@ -214,11 +233,17 @@ export default function ModulePopup({
                 </pre>
               </div>
             </div>
-            <div ml="auto">
-              {isDirty && (
+            <div className="ml-auto">
+              {isDirty && !isSaving && (
                 <Button size="sm" onClick={handleSave} className="h-8">
                   <Save className="mr-2 h-4 w-4" />
                   Save Changes
+                </Button>
+              )}
+              {isSaving && (
+                <Button disabled>
+                  <Loader2 className="animate-spin" />
+                  Please wait
                 </Button>
               )}
             </div>

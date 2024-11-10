@@ -57,7 +57,7 @@ export default function PatientCheckups({ patientId, onModuleClick }: { patientI
                       <div className="mt-2 flex flex-wrap gap-1">
                         {Object.entries(module.inputs).map(([key, value]) => (
                           <Badge key={key} variant="secondary" className="text-xs" color={value ? 'success' : 'gray'}>
-                            {key.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())} {value ? `: ${value}` : '<not set>'}
+                            {moduleTypes[module.module_type].inputs[key] || key.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())} {value ? `: ${value}` : '<not set>'}
                           </Badge>
                         ))}
                       </div>

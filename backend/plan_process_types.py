@@ -20,6 +20,15 @@ class PlanProcessingModuleType(str, Enum):
     DOCUMENTATION = "documentation_status"
     MEDICATION = "medication_adherence"
     NEEDS = "needs_verification"
+    PHQ = "phq_assessment"  # New enum value
+    IPV = "ipv_assessment"
+
+class PlanProcessingPHQConfig(BaseModel):
+    maxAlertScore: int = Field(ge=0, le=10)  # PHQ-2 has max score of 6
+
+class PlanProcessingIPVConfig(BaseModel):
+    maxAlertScore: int = Field(ge=0, le=30)  # PHQ-2 has max score of 6
+
 
 
 class PlanProcessingProviderType(str, Enum):
@@ -111,6 +120,19 @@ class PlanProcessingNeedsModule(BaseModel):
     alertThresholds: List[PlanProcessingAlertThreshold]
 
 
+
+class PlanProcessingPHQModule(BaseModel):
+    moduleType: Literal[PlanProcessingModuleType.PHQ]
+    moduleConfig: PlanProcessingPHQConfig
+    priority: PlanProcessingPriority
+    alertThresholds: List[PlanProcessingAlertThreshold]
+
+class PlanProcessingIPVModule(BaseModel):
+    moduleType: Literal[PlanProcessingModuleType.IPV]
+    moduleConfig: PlanProcessingIPVConfig
+    priority: PlanProcessingPriority
+    alertThresholds: List[PlanProcessingAlertThreshold]
+
 # Main models
 class PlanProcessingCheckIn(BaseModel):
     day_of_week: DayOfWeek = Field(ge=0, le=6)
@@ -123,6 +145,8 @@ class PlanProcessingCheckIn(BaseModel):
             PlanProcessingDocumentationModule,
             PlanProcessingMedicationModule,
             PlanProcessingNeedsModule,
+            PlanProcessingPHQModule,
+            PlanProcessingIPVModule
         ]
     ]
 
