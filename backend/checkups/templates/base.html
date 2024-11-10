@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Care Plan Check-ins{% endblock %}</title>
+
+    <!-- Tailwind CDN for quick hackathon styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      /* Custom CSS for components not covered by Tailwind */
+      .loading {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      /* Toast notification styling */
+      .toast {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: none;
+        z-index: 50;
+      }
+
+      .toast.success {
+        background: #34d399;
+        color: white;
+      }
+
+      .toast.error {
+        background: #ef4444;
+        color: white;
+      }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex">
+            <div class="flex-shrink-0 flex items-center">
+              <a href="/" class="text-xl font-bold text-gray-800">
+                Care Check-ins
+              </a>
+            </div>
+            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <a
+                href="{% url 'checkup-list' %}"
+                class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+              >
+                Check-ins
+              </a>
+              <a
+                href="/admin"
+                class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+              >
+                Admin
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <!-- Page header -->
+      <div
+        class="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between"
+      >
+        <h1 class="text-2xl font-bold leading-6 text-gray-900">
+          {% block header %}{% endblock %}
+        </h1>
+        {% block header_actions %}{% endblock %}
+      </div>
+
+      <!-- Content -->
+      <div class="mt-8">{% block content %}{% endblock %}</div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast">
+      <span id="toast-message"></span>
+    </div>
+
+    <!-- Utility JavaScript -->
+    <script>
+      // Toast notification function
+      function showToast(message, type = "success") {
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toast-message");
+
+        toast.className = `toast ${type}`;
+        toastMessage.textContent = message;
+        toast.style.display = "block";
+
+        setTimeout(() => {
+          toast.style.display = "none";
+        }, 3000);
+      }
+
+      // Generic error handler
+      function handleError(error) {
+        console.error("Error:", error);
+        showToast(error.message || "An error occurred", "error");
+      }
+
+      function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === "csrftoken=") {
+              cookieValue = decodeURIComponent(cookie.substring(10));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      // API wrapper
+      async function apiCall(url, options = {}) {
+        try {
+          const response = await fetch(url, {
+            ...options,
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCSRFToken(), 
+              ...options.headers,
+            },
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "API request failed");
+          }
+
+          return await response.json();
+        } catch (error) {
+          handleError(error);
+          throw error;
+        }
+      }
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+  </body>
+</html>

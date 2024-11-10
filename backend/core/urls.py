@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from checkups.views import PatientViewSet, CheckupViewSet, ModuleViewSet
+from checkups.views import CheckupListView, PatientViewSet, CheckupViewSet, ModuleViewSet
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -29,5 +29,7 @@ urlpatterns = [
         "api/schema/redoc/",
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
-    ),
+    ),    
+    path('checkups/', CheckupListView.as_view(), name='checkup-list'),
+
 ]
