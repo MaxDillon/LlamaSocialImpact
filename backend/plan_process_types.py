@@ -23,12 +23,13 @@ class PlanProcessingModuleType(str, Enum):
     PHQ = "phq_assessment"  # New enum value
     IPV = "ipv_assessment"
 
+
 class PlanProcessingPHQConfig(BaseModel):
     maxAlertScore: int = Field(ge=0, le=10)  # PHQ-2 has max score of 6
 
+
 class PlanProcessingIPVConfig(BaseModel):
     maxAlertScore: int = Field(ge=0, le=30)  # PHQ-2 has max score of 6
-
 
 
 class PlanProcessingProviderType(str, Enum):
@@ -121,18 +122,19 @@ class PlanProcessingNeedsModule(BaseModel):
     alertThresholds: List[PlanProcessingAlertThreshold]
 
 
-
 class PlanProcessingPHQModule(BaseModel):
     moduleType: Literal[PlanProcessingModuleType.PHQ]
     moduleConfig: PlanProcessingPHQConfig
     priority: PlanProcessingPriority
     alertThresholds: List[PlanProcessingAlertThreshold]
 
+
 class PlanProcessingIPVModule(BaseModel):
     moduleType: Literal[PlanProcessingModuleType.IPV]
     moduleConfig: PlanProcessingIPVConfig
     priority: PlanProcessingPriority
     alertThresholds: List[PlanProcessingAlertThreshold]
+
 
 # Main models
 class PlanProcessingCheckIn(BaseModel):
@@ -147,9 +149,20 @@ class PlanProcessingCheckIn(BaseModel):
             PlanProcessingMedicationModule,
             PlanProcessingNeedsModule,
             PlanProcessingPHQModule,
-            PlanProcessingIPVModule
+            PlanProcessingIPVModule,
         ]
     ]
+
+
+class Status(str, Enum):
+    complete = "complete"
+    in_progress = "in_progress"
+    not_started = "not_started"
+
+
+class Outputs(BaseModel):
+    status: Status
+    summary: str
 
 
 class PlanProcessingPlan(BaseModel):

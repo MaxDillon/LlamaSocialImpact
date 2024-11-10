@@ -1,4 +1,5 @@
 import asyncio
+import vapi
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.shortcuts import render
@@ -13,7 +14,11 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Patient, Checkup, CheckupModule, PatientProvider, Provider
 from .serializers import CheckupListSerializer, ModuleDetailSerializer
-from .utils import extract_text_from_pdf, extract_information_from_document
+from .utils import (
+    extract_text_from_pdf,
+    extract_information_from_document,
+    verify_module,
+)
 
 
 class PatientViewSet(viewsets.ViewSet):
@@ -114,7 +119,9 @@ class PatientViewSet(viewsets.ViewSet):
         print(plan_outline)
         # TODO: handle errors from pydantic extract
 
-        patient = Patient.objects.create(name=request.data["name"], plan_text=plan_text, phone=request.data["phone"])
+        patient = Patient.objects.create(
+            name=request.data["name"], plan_text=plan_text, phone=request.data["phone"]
+        )
 
         checkins = plan_outline.checkIns
         for checkin in checkins:
@@ -223,8 +230,16 @@ class CheckupViewSet(viewsets.ViewSet):
 
         try:
             # Run async call in sync context
-            call = trigger_call(checkup.patient, checkup)
+            call, call_status = trigger_call(checkup.patient, checkup)
             print(call)
+
+            modules = CheckupModule.objects.filter(checkup=checkup)
+            for module in modules:
+                print(module.module_type)
+                outputs = verify_module(module, call_status.transcript)
+                module.outputs = dict(outputs)
+                module.save()
+
             return Response({"call_id": call.id, "status": call.status})
         except Exception as e:
             return Response(
@@ -315,12 +330,8 @@ class ModuleViewSet(viewsets.ViewSet):
         """
         module = get_object_or_404(CheckupModule, pk=pk)
         print(f"Updating module {pk} with data:", request.data)  # Debug print
-        
-        serializer = ModuleDetailSerializer(
-            module,
-            data=request.data,
-            partial=True
-        )
+
+        serializer = ModuleDetailSerializer(module, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             print("Updated module:", serializer.data)  # Debug print

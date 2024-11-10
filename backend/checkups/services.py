@@ -7,17 +7,18 @@ from jinja2 import Environment, FileSystemLoader
 
 vapi = Vapi(token=os.getenv("VAPI_API_KEY"))
 
+
 def trigger_call(patient, checkup: Checkup):
     try:
         """Trigger a VAPI call for a specific checkup"""
-        checkup_modules : List[CheckupModule] = checkup.modules.all()
+        checkup_modules: List[CheckupModule] = checkup.modules.all()
         print(checkup_modules)
         for module in checkup_modules:
             print(module.module_type)
-            
+
         # Load and render call plan template
-        env = Environment(loader=FileSystemLoader('checkups/templates'))
-        template = env.get_template('call_plan.njk')
+        env = Environment(loader=FileSystemLoader("checkups/templates"))
+        template = env.get_template("call_plan.njk")
         call_plan = template.render(checkup=checkup)
     except Exception as e:
         print(f"Error rendering call plan: {e}")
@@ -36,10 +37,12 @@ def trigger_call(patient, checkup: Checkup):
             assistant_overrides=AssistantOverrides(
                 variable_values={
                     "patient_name": patient.name,
-                    "days_since_start": (checkup.scheduled_for - patient.created_at).days,
-                    "call_plan": call_plan
+                    "days_since_start": (
+                        checkup.scheduled_for - patient.created_at
+                    ).days,
+                    "call_plan": call_plan,
                 }
-            )
+            ),
         )
 
         while True:
@@ -48,8 +51,9 @@ def trigger_call(patient, checkup: Checkup):
                 break
             time.sleep(1)
             print(call_status.status)
-        return call
+
+        print(call_status.transcript)
+        return (call, call_status)
     except Exception as e:
         print(f"Error triggering call: {e}")
         raise
-

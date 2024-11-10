@@ -5,6 +5,8 @@ import os, json
 import plan_process_types
 from dotenv import load_dotenv
 import openai
+from .models import CheckupModule
+from .serializers import ModuleDetailSerializer
 
 
 def extract_text_from_pdf(pdf_file):
@@ -61,6 +63,43 @@ def extract_information_from_document(document: str):
 
     print(response.choices[0].message.content)
 
-    return plan_process_types.PlanProcessingPlan.model_validate_json(
+    return plan_process_types.Outputs.model_validate_json(
         response.choices[0].message.content
     )
+
+
+def verify_module(module: CheckupModule, transcript: str):
+    SCHEMA = plan_process_types.Outputs.model_json_schema()
+    PROMPT = f"""
+    Summarize the results of this specific module from the following transcript. Following is the transcript then the module. 
+    Please conform to the schema:
+    {SCHEMA}
+"""
+
+    client = openai.OpenAI(
+        base_url=os.environ["BASE_URL"],
+        api_key=os.environ["FIREWORKS_AI_KEY"],
+    )
+    response = client.chat.completions.create(
+        model="accounts/fireworks/models/llama-v3p1-8b-instruct",
+        messages=[
+            {
+                "role": "system",
+                "content": PROMPT,
+            },
+            {
+                "role": "user",
+                "content": json.dumps(ModuleDetailSerializer(module).data),
+            },
+            {
+                "role": "user",
+                "content": transcript,
+            },
+        ],
+        response_format={"type": "json_object", "schema": SCHEMA},
+    )
+
+    result = plan_process_types.Outputs.model_validate_json(
+        response.choices[0].message.content
+    )
+    return result
