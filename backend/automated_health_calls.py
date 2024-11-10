@@ -1,4 +1,4 @@
-# This is a script that combines call_routes.py and together_ai.py to create a full automated health call.
+# This is a script that combines call_routes.py and together_ai.py to create an automated health call.
 from flask import Blueprint
 import os
 from together import Together
@@ -29,8 +29,8 @@ class Result(BaseModel):
 
 @health_routes.post("/initiate-health-call")
 def initiate_health_call():
-    # Get the care instructions (you might want to pass this as a parameter)
-    with open("/Users/maxdillon/Projects/hackathons/llama_impact/LlamaSocialImpact/example_documents.txt") as f:
+    # Get the care instructions
+    with open("../example_documents.txt") as f:
         care_instructions = f.read()
 
     # Get structured check-ins from Together AI
