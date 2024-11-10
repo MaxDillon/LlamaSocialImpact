@@ -18,6 +18,8 @@ djangorestframework = "^3.15.2"
 psycopg2-binary = "^2.9.10"
 django-cors-headers = "^4.6.0"
 drf-spectacular = "^0.27.2"
+fireworks-ai = "^0.15.8"
+openai = "^1.54.3"
 
 
 

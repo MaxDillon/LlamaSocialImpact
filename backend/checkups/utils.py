@@ -4,6 +4,7 @@ from together import Together
 import os, json
 import plan_process_types
 from dotenv import load_dotenv
+import openai
 
 
 def extract_text_from_pdf(pdf_file):
@@ -33,8 +34,12 @@ load_dotenv()
 
 def extract_information_from_document(document: str):
     togetherai = Together(api_key=os.environ.get("TOGETHER_AI_KEY"))
-    response = togetherai.chat.completions.create(
-        model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    client = openai.OpenAI(
+        base_url="https://api.fireworks.ai/inference/v1",
+        api_key=os.environ["FIREWORKS_API_KEY"],
+    )
+    response = client.chat.completions.create(
+        model="accounts/fireworks/models/llama-v3p1-8b-instruct",
         messages=[
             {
                 "role": "system",

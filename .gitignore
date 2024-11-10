@@ -26,4 +26,4 @@ var/
 .venv
 venv/
 ENV/
-migrations
+migrations/

@@ -4,6 +4,16 @@ from enum import Enum
 from datetime import datetime
 
 
+class DayOfWeek(int, Enum):
+    MONDAY = 0
+    TUESDAY = 1
+    WEDNESDAY = 2
+    THURSDAY = 3
+    FRIDAY = 4
+    SATURDAY = 5
+    SUNDAY = 6
+
+
 class PlanProcessingModuleType(str, Enum):
     CHECKIN = "checkin_requirement"
     OUTREACH = "outreach_check"
@@ -103,9 +113,9 @@ class PlanProcessingNeedsModule(BaseModel):
 
 # Main models
 class PlanProcessingCheckIn(BaseModel):
-    day_of_week: int = Field(ge=1, le=7)
+    day_of_week: DayOfWeek = Field(ge=0, le=6)
     description: str
-    rationale: str | None = None
+    rationale: str
     modules: List[
         Union[
             PlanProcessingCheckinModule,

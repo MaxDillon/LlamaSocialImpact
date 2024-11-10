@@ -1,4 +1,6 @@
 import asyncio
+from datetime import datetime, timedelta
+from django.utils import timezone
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from .services import trigger_call
@@ -20,6 +22,9 @@ class PatientViewSet(viewsets.ViewSet):
     """
 
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+
+    def list(self, request):
+        return Response(status=status.HTTP_200_OK)
 
     def create(self, request):
         """
@@ -80,15 +85,22 @@ class PatientViewSet(viewsets.ViewSet):
 
         checkins = plan_outline.checkIns
         for checkin in checkins:
+            time = timezone.now() - timedelta(
+                days=timezone.now().weekday() + checkin.day_of_week
+            )
             dbCheckin = Checkup.objects.create(
                 patient=patient,
                 description=checkin.description,
-                scheduled_for=checkin.day,
+                scheduled_for=time,
                 goals=checkin.rationale,
+                sequence_number=0,
             )
             for module in checkin.modules:
                 CheckupModule.objects.create(
-                    checkup=dbCheckin, module_type=module.moduleType
+                    checkup=dbCheckin,
+                    module_type=module.moduleType,
+                    sequence_order=0,
+                    rationale=module.purpose,
                 )
 
         providers_data = request.data.get("providers", [])
